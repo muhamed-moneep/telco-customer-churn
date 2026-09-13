@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Churn Risk &amp; Retention Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1522;
+    --panel:#101E30;
+    --panel-2:#0D1A2A;
+    --line:#1E3049;
+    --text:#E7ECF3;
+    --muted:#7F93AC;
+    --cyan:#48D6C8;
+    --amber:#F0A860;
+    --coral:#F2585F;
+    --coral-dim:#3A2027;
+    --amber-dim:#3A2E1A;
+    --cyan-dim:#123330;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 500px at 15% -10%, #12233A 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #0F2A2A 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', system-ui, sans-serif;
+    min-height:100vh;
+    padding:36px 20px 60px;
+  }
+  .wrap{max-width:1180px; margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  header{margin-bottom:30px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.16em;
+    color:var(--cyan);
+    text-transform:uppercase;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:8px;height:8px;border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 0 4px var(--cyan-dim);
+  }
+  h1{
+    font-family:'Sora', sans-serif;
+    font-weight:800;
+    font-size:clamp(28px,4vw,42px);
+    letter-spacing:-0.02em;
+    margin:0 0 10px;
+    line-height:1.05;
+  }
+  h1 span{color:var(--cyan);}
+  .lede{
+    color:var(--muted);
+    font-size:15.5px;
+    max-width:640px;
+    line-height:1.6;
+    margin:0;
+  }
+  .lede b{color:var(--text); font-weight:600;}
+
+  /* ---------- Layout ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap:22px;
+    align-items:start;
+  }
+  @media (max-width: 880px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 26px 28px;
+  }
+  .panel h2{
+    font-family:'Sora', sans-serif;
+    font-size:14px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 20px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .panel h2 .n{
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--cyan-dim);
+    color:var(--cyan);
+    font-size:11px;
+    padding:2px 7px;
+    border-radius:5px;
+  }
+
+  /* ---------- Form controls ---------- */
+  .field{margin-bottom:20px;}
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:8px;
+    color:var(--text);
+  }
+  .field .hint{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    font-weight:400;
+    margin-left:6px;
+  }
+  select, input[type=range]{
+    width:100%;
+  }
+  select{
+    background:#0A1524;
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:11px 12px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' stroke='%237F93AC' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+  }
+  select:focus, input:focus{
+    outline:2px solid var(--cyan);
+    outline-offset:1px;
+  }
+  input[type=range]{
+    -webkit-appearance:none;
+    height:6px;
+    border-radius:4px;
+    background:linear-gradient(90deg, var(--cyan) 0%, var(--cyan) var(--fill,50%), #1B2D44 var(--fill,50%), #1B2D44 100%);
+    cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:18px;height:18px;border-radius:50%;
+    background:#fff;
+    border:3px solid var(--cyan);
+    cursor:pointer;
+    margin-top:-1px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:14px;height:14px;border-radius:50%;
+    background:#fff;border:3px solid var(--cyan);cursor:pointer;
+  }
+  .rangeval{
+    display:flex; justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; color:var(--muted);
+    margin-top:8px;
+  }
+  .rangeval b{color:var(--cyan); font-weight:600;}
+
+  .checks{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 14px;
+  }
+  .chk{
+    display:flex; align-items:center; gap:9px;
+    background:#0A1524;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:10px 12px;
+    font-size:13px;
+    cursor:pointer;
+    user-select:none;
+    transition:border-color .15s ease;
+  }
+  .chk:hover{border-color:#2A4666;}
+  .chk input{accent-color:var(--cyan); width:15px; height:15px; cursor:pointer;}
+  .chk.active{border-color:var(--cyan); background:#0E2420;}
+
+  /* ---------- Gauge ---------- */
+  .gauge-wrap{text-align:center; padding:6px 0 4px;}
+  .gauge-score{
+    font-family:'Sora', sans-serif;
+    font-weight:800;
+    font-size:52px;
+    margin-top:-46px;
+    letter-spacing:-0.02em;
+  }
+  .gauge-band{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    padding:5px 14px;
+    border-radius:20px;
+    display:inline-block;
+    margin-top:6px;
+  }
+  .band-low{color:#69E4C6; background:#0F2C26; border:1px solid #1E5245;}
+  .band-med{color:var(--amber); background:var(--amber-dim); border:1px solid #5C4426;}
+  .band-high{color:var(--coral); background:var(--coral-dim); border:1px solid #5C2830;}
+
+  .factors{
+    margin-top:22px;
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .factor-row{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:12.5px;
+    background:#0A1524;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 12px;
+  }
+  .factor-row .fname{color:var(--muted);}
+  .factor-row .fval{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+  }
+  .fval.up{color:var(--coral);}
+  .fval.down{color:#69E4C6;}
+  .fval.flat{color:var(--muted);}
+
+  /* ---------- Recommendations ---------- */
+  .reco-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .reco-list li{
+    display:flex; gap:11px;
+    background:#0A1524;
+    border:1px solid var(--line);
+    border-left:3px solid var(--cyan);
+    border-radius:9px;
+    padding:12px 14px;
+    font-size:13.5px;
+    line-height:1.5;
+    color:#D7E0EA;
+  }
+  .reco-list li .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--cyan);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    white-space:nowrap;
+    padding-top:1px;
+  }
+
+  footer{
+    margin-top:26px;
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.6;
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+  footer b{color:#A9BACF;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Customer Churn Analysis — Bonus Deliverable</div>
+    <h1>Churn Risk &amp; <span>Retention</span> Advisor</h1>
+    <p class="lede">
+      Enter a customer's profile to score their churn risk and get retention actions —
+      built directly from the six factors this project's analysis confirmed as significant:
+      <b>contract type</b>, <b>payment method</b>, <b>tenure</b>, <b>internet service</b>,
+      <b>monthly charges</b>, and <b>add-on services</b>.
+    </p>
+  </header>
+
+  <div class="grid">
+
+    <!-- ============ INPUT PANEL ============ -->
+    <div class="panel">
+      <h2><span class="n">IN</span> Customer Profile</h2>
+
+      <div class="field">
+        <label for="contract">Contract type</label>
+        <select id="contract">
+          <option value="mtm">Month-to-month</option>
+          <option value="oneyear">One year</option>
+          <option value="twoyear">Two year</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="payment">Payment method</label>
+        <select id="payment">
+          <option value="echeck">Electronic check</option>
+          <option value="mailed">Mailed check</option>
+          <option value="bank">Bank transfer (automatic)</option>
+          <option value="credit">Credit card (automatic)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="internet">Internet service</label>
+        <select id="internet">
+          <option value="fiber">Fiber optic</option>
+          <option value="dsl">DSL</option>
+          <option value="none">No internet service</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Tenure <span class="hint">months with the company</span></label>
+        <input type="range" id="tenure" min="0" max="72" value="12">
+        <div class="rangeval"><span>0 mo</span><b id="tenureVal">12 months</b><span>72 mo</span></div>
+      </div>
+
+      <div class="field">
+        <label>Monthly charges <span class="hint">USD</span></label>
+        <input type="range" id="charges" min="18" max="120" value="70">
+        <div class="rangeval"><span>$18</span><b id="chargesVal">$70</b><span>$120</span></div>
+      </div>
+
+      <div class="field">
+        <label>Add-on services subscribed</label>
+        <div class="checks" id="services">
+          <label class="chk"><input type="checkbox" value="security"> Online Security</label>
+          <label class="chk"><input type="checkbox" value="backup"> Online Backup</label>
+          <label class="chk"><input type="checkbox" value="device"> Device Protection</label>
+          <label class="chk"><input type="checkbox" value="tech"> Tech Support</label>
+          <label class="chk"><input type="checkbox" value="tv"> Streaming TV</label>
+          <label class="chk"><input type="checkbox" value="movies"> Streaming Movies</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OUTPUT PANEL ============ -->
+    <div>
+      <div class="panel" style="margin-bottom:18px;">
+        <h2><span class="n">OUT</span> Risk Score</h2>
+
+        <div class="gauge-wrap">
+          <svg id="gauge" width="260" height="150" viewBox="0 0 260 150">
+            <path d="M 20 140 A 110 110 0 0 1 240 140" fill="none" stroke="#1B2D44" stroke-width="18" stroke-linecap="round"/>
+            <path id="arcLow"  d="M 20 140 A 110 110 0 0 1 90 40"   fill="none" stroke="#2A8E76" stroke-width="18" stroke-linecap="round"/>
+            <path id="arcMed"  d="M 96 36 A 110 110 0 0 1 164 36"   fill="none" stroke="#C98A3E" stroke-width="18" stroke-linecap="round"/>
+            <path id="arcHigh" d="M 170 40 A 110 110 0 0 1 240 140" fill="none" stroke="#C2454C" stroke-width="18" stroke-linecap="round"/>
+            <line id="needle" x1="130" y1="140" x2="130" y2="45" stroke="#EDEFF3" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="130" cy="140" r="8" fill="#EDEFF3"/>
+            <circle cx="130" cy="140" r="4" fill="#0D1A2A"/>
+          </svg>
+          <div class="gauge-score" id="scoreNum">0</div>
+          <div class="gauge-band band-low" id="bandLabel">LOW RISK</div>
+        </div>
+
+        <div class="factors" id="factorList"></div>
+      </div>
+
+      <div class="panel">
+        <h2><span class="n">→</span> Recommended Retention Actions</h2>
+        <ul class="reco-list" id="recoList"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <b>How this score works:</b> this is a transparent, rule-based score built from the directional findings of the
+    project's own analysis (feature selection, conditional probability, Bayes' theorem, and chi-square tests) — it is
+    not a trained ML model's output. Each factor below is weighted in the direction confirmed by that analysis, so the
+    tool stays fully explainable for the report and demo, and doubles as a live summary of the project's conclusions.
+  </footer>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const tenureEl = $('tenure'), chargesEl = $('charges');
+const tenureVal = $('tenureVal'), chargesVal = $('chargesVal');
+
+function syncSliderFill(el){
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--fill', pct + '%');
+}
+
+function computeAndRender(){
+  const contract = $('contract').value;
+  const payment  = $('payment').value;
+  const internet = $('internet').value;
+  const tenure   = parseInt(tenureEl.value, 10);
+  const charges  = parseInt(chargesEl.value, 10);
+  const services = Array.from(document.querySelectorAll('#services input:checked')).map(c => c.value);
+
+  tenureVal.textContent = tenure + ' months';
+  chargesVal.textContent = '$' + charges;
+  syncSliderFill(tenureEl);
+  syncSliderFill(chargesEl);
+
+  document.querySelectorAll('.chk').forEach(l => {
+    const cb = l.querySelector('input');
+    l.classList.toggle('active', cb.checked);
+  });
+
+  // ---- scoring (directional weights from the project's findings) ----
+  let score = 10; // base
+  const contribs = [];
+
+  if (contract === 'mtm'){ score += 32; contribs.push(['Month-to-month contract', 32, 'up']); }
+  else if (contract === 'oneyear'){ score += 8; contribs.push(['One-year contract', 8, 'up']); }
+  else { score -= 6; contribs.push(['Two-year contract', -6, 'down']); }
+
+  if (payment === 'echeck'){ score += 18; contribs.push(['Electronic check payment', 18, 'up']); }
+  else if (payment === 'mailed'){ score += 6; contribs.push(['Mailed check payment', 6, 'up']); }
+  else { score -= 4; contribs.push(['Automatic payment (autopay)', -4, 'down']); }
+
+  if (internet === 'fiber'){ score += 14; contribs.push(['Fiber optic internet', 14, 'up']); }
+  else if (internet === 'dsl'){ score += 3; contribs.push(['DSL internet', 3, 'up']); }
+  else { score -= 3; contribs.push(['No internet service', -3, 'down']); }
+
+  const tenureRisk = Math.round(Math.max(0, (36 - tenure) / 36) * 22);
+  score += tenureRisk;
+  contribs.push(['Tenure (' + tenure + ' mo)', tenureRisk, tenureRisk > 2 ? 'up' : 'flat']);
+
+  const chargeRisk = Math.round(Math.max(0, (charges - 40) / 80) * 10);
+  score += chargeRisk;
+  contribs.push(['Monthly charges ($' + charges + ')', chargeRisk, chargeRisk > 2 ? 'up' : 'flat']);
+
+  const serviceRelief = services.length * 3;
+  score -= serviceRelief;
+  contribs.push(['Add-on services (' + services.length + ')', -serviceRelief, services.length > 0 ? 'down' : 'flat']);
+
+  score = Math.max(2, Math.min(98, Math.round(score)));
+
+  // ---- gauge needle: 0 -> -90deg (left), 100 -> +90deg (right), pivot (130,140) ----
+  const angle = -90 + (score / 100) * 180;
+  const rad = angle * Math.PI / 180;
+  const len = 95;
+  const x2 = 130 + len * Math.sin(rad);
+  const y2 = 140 - len * Math.cos(rad);
+  $('needle').setAttribute('x2', x2.toFixed(1));
+  $('needle').setAttribute('y2', y2.toFixed(1));
+
+  $('scoreNum').textContent = score;
+
+  let bandClass = 'band-low', bandText = 'LOW RISK';
+  if (score >= 66){ bandClass = 'band-high'; bandText = 'HIGH RISK'; }
+  else if (score >= 35){ bandClass = 'band-med'; bandText = 'MEDIUM RISK'; }
+  const bandEl = $('bandLabel');
+  bandEl.className = 'gauge-band ' + bandClass;
+  bandEl.textContent = bandText;
+  $('scoreNum').style.color = score >= 66 ? 'var(--coral)' : (score >= 35 ? 'var(--amber)' : '#69E4C6');
+
+  // ---- factor breakdown ----
+  const factorList = $('factorList');
+  factorList.innerHTML = '';
+  contribs.forEach(([name, val, dir]) => {
+    const row = document.createElement('div');
+    row.className = 'factor-row';
+    const sign = val > 0 ? '+' + val : (val < 0 ? val : '±0');
+    row.innerHTML = `<span class="fname">${name}</span><span class="fval ${dir}">${sign}</span>`;
+    factorList.appendChild(row);
+  });
+
+  // ---- recommendations ----
+  const recoList = $('recoList');
+  const recos = [];
+
+  if (contract === 'mtm'){
+    recos.push(['CONTRACT', 'Offer an upgrade incentive (discount or perk) to move this customer from Month-to-month to a One- or Two-year contract — the single strongest churn predictor found in this analysis.']);
+  }
+  if (payment === 'echeck'){
+    recos.push(['PAYMENT', 'Nudge toward automatic bank transfer or credit card payment, e.g. with a small autopay discount — Electronic check was confirmed (chi-square, p < 0.05) to be significantly associated with higher churn.']);
+  }
+  if (internet === 'fiber'){
+    recos.push(['SERVICE', 'Flag for a service/pricing satisfaction check-in — Fiber optic customers showed elevated churn in feature selection and clustering results.']);
+  }
+  if (tenure < 12){
+    recos.push(['LIFECYCLE', 'Enroll in an early-engagement / onboarding program — short tenure was consistently the top churn signal across every method used.']);
+  }
+  if (services.length < 2){
+    recos.push(['BUNDLE', 'Offer a bundled discount on Security, Backup, or Tech Support — customers with more add-on services were consistently less likely to churn.']);
+  }
+  if (score >= 66){
+    recos.push(['PRIORITY', 'Add to the high-risk outreach list identified by the PCA/K-Means segmentation — proactive contact (special offer or check-in call) rather than a blanket campaign.']);
+  }
+  if (recos.length === 0){
+    recos.push(['STATUS', 'No major risk flags — this profile matches the "loyal" segment identified in clustering (longer tenure, longer contract, more add-on services). Standard engagement is sufficient.']);
+  }
+
+  recoList.innerHTML = '';
+  recos.forEach(([tag, text]) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="tag">${tag}</span><span>${text}</span>`;
+    recoList.appendChild(li);
+  });
+}
+
+document.querySelectorAll('select, input').forEach(el => {
+  el.addEventListener('input', computeAndRender);
+  el.addEventListener('change', computeAndRender);
+});
+
+syncSliderFill(tenureEl);
+syncSliderFill(chargesEl);
+computeAndRender();
+</script>
+</body>
+</html>

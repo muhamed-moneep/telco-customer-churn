@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Churn Analytics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1522;
+    --panel:#101E30;
+    --panel-2:#0D1A2A;
+    --line:#1E3049;
+    --text:#E7ECF3;
+    --muted:#7F93AC;
+    --cyan:#48D6C8;
+    --amber:#F0A860;
+    --coral:#F2585F;
+    --green:#69E4C6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 500px at 12% -10%, #12233A 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #0F2A2A 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', system-ui, sans-serif;
+    min-height:100vh;
+    padding:34px 20px 60px;
+  }
+  .wrap{max-width:1280px; margin:0 auto;}
+
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px; letter-spacing:.16em; color:var(--cyan);
+    text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px #123330;}
+  h1{
+    font-family:'Sora', sans-serif; font-weight:800;
+    font-size:clamp(26px,3.6vw,38px); letter-spacing:-0.02em; margin:0 0 8px; line-height:1.08;
+  }
+  h1 span{color:var(--cyan);}
+  .lede{color:var(--muted); font-size:15px; max-width:720px; line-height:1.6; margin:0;}
+  .lede b{color:var(--text); font-weight:600;}
+
+  /* ---------- KPI row ---------- */
+  .kpi-row{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:28px 0 24px;
+  }
+  @media(max-width:920px){ .kpi-row{grid-template-columns:1fr 1fr;} }
+  .kpi{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:14px; padding:18px 20px;
+  }
+  .kpi .label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:10px;
+  }
+  .kpi .value{font-family:'Sora',sans-serif; font-weight:800; font-size:30px; line-height:1;}
+  .kpi .sub{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5;}
+  .kpi.coral .value{color:var(--coral);}
+  .kpi.cyan .value{color:var(--cyan);}
+  .kpi.amber .value{color:var(--amber);}
+  .kpi.green .value{color:var(--green);}
+
+  /* ---------- Panels / grid ---------- */
+  .grid2{display:grid; grid-template-columns:1.35fr 1fr; gap:18px; margin-bottom:18px;}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-bottom:18px;}
+  @media(max-width:980px){ .grid2, .grid3{grid-template-columns:1fr;} }
+
+  .panel{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:16px; padding:22px 22px 20px;
+  }
+  .panel h2{
+    font-family:'Sora', sans-serif; font-size:13.5px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 4px; display:flex; align-items:center; gap:9px;
+  }
+  .panel h2 .n{
+    font-family:'IBM Plex Mono', monospace; background:#123330; color:var(--cyan);
+    font-size:10.5px; padding:2px 7px; border-radius:5px;
+  }
+  .panel .sub-note{font-size:11.5px; color:var(--muted); margin:0 0 14px; line-height:1.5;}
+  .chart-box{position:relative; height:260px;}
+  .chart-box.tall{height:320px;}
+  .chart-box svg{width:100%; height:100%; overflow:visible;}
+  .axis-line{stroke:var(--line); stroke-width:1;}
+  .bar-label{font-family:'IBM Plex Mono',monospace; font-size:11px; fill:var(--muted);}
+  .val-label{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;}
+  .cat-label{font-family:'Inter',sans-serif; font-size:11px; fill:var(--muted);}
+  .legend-row{display:flex; gap:18px; margin-bottom:10px; font-size:11.5px; color:var(--muted); align-items:center;}
+  .legend-row .sw{display:inline-block; width:10px; height:10px; border-radius:2.5px; margin-right:6px; vertical-align:middle;}
+
+  /* ---------- Stat cards (hypothesis testing) ---------- */
+  .stat-card{
+    background:#0A1524; border:1px solid var(--line); border-radius:11px;
+    padding:16px 18px; margin-bottom:12px;
+  }
+  .stat-card:last-child{margin-bottom:0;}
+  .stat-card .title{font-weight:600; font-size:13.5px; margin-bottom:8px;}
+  .stat-card .row{
+    display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace;
+    font-size:12px; color:var(--muted); padding:3px 0;
+  }
+  .stat-card .row b{color:var(--text); font-weight:600;}
+  .verdict{
+    display:inline-block; margin-top:9px; font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    padding:4px 10px; border-radius:20px; background:#3A2027; color:var(--coral); border:1px solid #5C2830;
+  }
+
+  /* ---------- Bayes callout ---------- */
+  .bayes{
+    background:#0A1524; border:1px solid var(--line); border-left:3px solid var(--cyan);
+    border-radius:10px; padding:16px 18px; font-size:13px; line-height:1.7; color:#D7E0EA;
+  }
+  .bayes .formula{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--cyan);
+    background:#0D1F1D; padding:10px 12px; border-radius:8px; margin:10px 0; display:block;
+  }
+  .bayes .result{font-family:'Sora',sans-serif; font-weight:800; font-size:26px; color:var(--cyan); margin-top:4px;}
+
+  /* ---------- Cluster cards ---------- */
+  .cluster-cards{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;}
+  @media(max-width:700px){ .cluster-cards{grid-template-columns:1fr;} }
+  .ccard{
+    background:#0A1524; border:1px solid var(--line); border-radius:11px; padding:14px 16px;
+    border-top:3px solid var(--muted);
+  }
+  .ccard.high{border-top-color:var(--coral);}
+  .ccard.mid{border-top-color:var(--amber);}
+  .ccard.low{border-top-color:var(--green);}
+  .ccard .cname{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+  .ccard .crate{font-family:'Sora',sans-serif; font-weight:800; font-size:26px;}
+  .ccard.high .crate{color:var(--coral);}
+  .ccard.mid .crate{color:var(--amber);}
+  .ccard.low .crate{color:var(--green);}
+  .ccard .cn{font-size:11.5px; color:var(--muted); margin-top:6px;}
+
+  footer{
+    margin-top:26px; font-size:11.5px; color:var(--muted); line-height:1.6;
+    border-top:1px solid var(--line); padding-top:16px;
+  }
+  footer b{color:#A9BACF;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Customer Churn Analysis — Bonus Deliverable</div>
+    <h1>Churn Analytics <span>Dashboard</span></h1>
+    <p class="lede">
+      Every number on this page is pulled directly from the project notebook's actual output —
+      <b>7,043 Telco customers</b>, feature selection scores, chi-square test results, and PCA/K-Means
+      segmentation — not placeholder data.
+    </p>
+  </header>
+
+  <!-- ===================== KPI ROW ===================== -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="label">Total Customers</div>
+      <div class="value">7,043</div>
+      <div class="sub">6,984 after wrangling (59 billing-mismatch rows removed)</div>
+    </div>
+    <div class="kpi coral">
+      <div class="label">Overall Churn Rate</div>
+      <div class="value">26.56%</div>
+      <div class="sub">73.44% stayed — moderate class imbalance</div>
+    </div>
+    <div class="kpi amber">
+      <div class="label">Month-to-Month Churn</div>
+      <div class="value">42.87%</div>
+      <div class="sub">vs. 2.84% for Two-year contracts</div>
+    </div>
+    <div class="kpi cyan">
+      <div class="label">Baseline Model CV Score</div>
+      <div class="value">80.43%</div>
+      <div class="sub">Logistic Regression, all 37 features, 5-fold CV</div>
+    </div>
+  </div>
+
+  <!-- ===================== ROW 1: Contract + Payment ===================== -->
+  <div class="grid2">
+    <div class="panel">
+      <h2><span class="n">01</span>Churn Rate by Contract Type</h2>
+      <p class="sub-note">P(Churn | Contract) — conditional probability computed directly from the dataset.</p>
+      <div class="chart-box" id="chartContract"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="n">02</span>Payment Method Breakdown</h2>
+      <p class="sub-note">Churned vs. retained customers per payment method (contingency counts).</p>
+      <div class="legend-row">
+        <span><span class="sw" style="background:#1E3F55"></span>Retained</span>
+        <span><span class="sw" style="background:#F2585F"></span>Churned</span>
+      </div>
+      <div class="chart-box" id="chartPayment"></div>
+    </div>
+  </div>
+
+  <!-- ===================== ROW 2: Feature importance + Bayes ===================== -->
+  <div class="grid2">
+    <div class="panel">
+      <h2><span class="n">03</span>Top Churn Predictors (ANOVA F-test)</h2>
+      <p class="sub-note">SelectKBest F-scores — higher means a stronger split between churned / retained customers.</p>
+      <div class="chart-box tall" id="chartFeatures"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="n">04</span>Bayes' Theorem</h2>
+      <p class="sub-note">Given a customer churned, how likely were they Month-to-month?</p>
+      <div class="bayes">
+        P(Contract = MTM | Churn) = P(Churn | MTM) × P(MTM) ÷ P(Churn)
+        <span class="formula">= 0.4287 × 0.5484 ÷ 0.2656</span>
+        <div class="result">88.52%</div>
+        of all churned customers were on a Month-to-month contract — confirmed by direct empirical calculation on the raw data (exact match).
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ROW 3: Hypothesis tests + Clusters ===================== -->
+  <div class="grid2">
+    <div class="panel">
+      <h2><span class="n">05</span>Hypothesis Testing (χ² Test of Independence, α = 0.05)</h2>
+      <div class="stat-card">
+        <div class="title">Payment Method vs. Churn</div>
+        <div class="row"><span>χ² statistic</span><b>648.97</b></div>
+        <div class="row"><span>Degrees of freedom</span><b>3</b></div>
+        <div class="row"><span>p-value</span><b>&lt; 0.000001</b></div>
+        <span class="verdict">H₀ Rejected — Significant</span>
+      </div>
+      <div class="stat-card">
+        <div class="title">Contract Type vs. Churn</div>
+        <div class="row"><span>χ² statistic</span><b>1185.31</b></div>
+        <div class="row"><span>Degrees of freedom</span><b>2</b></div>
+        <div class="row"><span>p-value</span><b>&lt; 0.000001</b></div>
+        <span class="verdict">H₀ Rejected — Significant</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="n">06</span>PCA + K-Means Customer Segments</h2>
+      <p class="sub-note">2 principal components explain 46.91% of variance (PC1: 33.16%, PC2: 13.75%) · k=3, silhouette score 0.616</p>
+      <div class="cluster-cards">
+        <div class="ccard high">
+          <div class="cname">Cluster 1 — High Risk</div>
+          <div class="crate">44.29%</div>
+          <div class="cn">2,495 customers</div>
+        </div>
+        <div class="ccard mid">
+          <div class="cname">Cluster 0 — Medium</div>
+          <div class="crate">12.34%</div>
+          <div class="cn">1,605 customers</div>
+        </div>
+        <div class="ccard low">
+          <div class="cname">Cluster 2 — Loyal</div>
+          <div class="crate">7.73%</div>
+          <div class="cn">1,138 customers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Source:</b> all figures on this dashboard are read directly from the executed outputs of
+    <i>Project_TelcoCustomerChurn.ipynb</i> (Sections 1–14: wrangling, EDA, feature selection, probability &amp;
+    hypothesis testing, PCA/clustering) — nothing here is simulated or estimated.
+  </footer>
+
+</div>
+
+<script>
+// ------------------------------------------------------------------
+// Dependency-free SVG chart renderers (no external libraries —
+// guarantees the dashboard renders identically with or without
+// internet access, since Google Fonts is the only optional extra).
+// ------------------------------------------------------------------
+const SVGNS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+// ---- 01 Vertical bar chart: Contract churn rate ----
+function renderVerticalBars(containerId, data, opts = {}) {
+  const container = document.getElementById(containerId);
+  const W = container.clientWidth || 480, H = container.clientHeight || 260;
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none' });
+  const padL = 40, padB = 34, padT = 18, padR = 14;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const maxVal = opts.max || Math.max(...data.map(d => d.value)) * 1.15;
+  const gapRatio = 0.42;
+  const barW = plotW / data.length * (1 - gapRatio);
+  const slot = plotW / data.length;
+
+  // gridlines
+  const steps = 4;
+  for (let i = 0; i <= steps; i++) {
+    const y = padT + plotH - (plotH * i / steps);
+    svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: y, y2: y, class: 'axis-line' }));
+    const val = (maxVal * i / steps);
+    const t = svgEl('text', { x: padL - 8, y: y + 4, class: 'bar-label', 'text-anchor': 'end' });
+    t.textContent = (opts.suffix === '%') ? Math.round(val) + '%' : Math.round(val);
+    svg.appendChild(t);
+  }
+
+  data.forEach((d, i) => {
+    const x = padL + i * slot + (slot - barW) / 2;
+    const barH = plotH * (d.value / maxVal);
+    const y = padT + plotH - barH;
+    svg.appendChild(svgEl('rect', { x, y, width: barW, height: barH, rx: 6, fill: d.color }));
+    const vt = svgEl('text', { x: x + barW / 2, y: y - 8, class: 'val-label', 'text-anchor': 'middle', fill: d.color });
+    vt.textContent = d.value + (opts.suffix || '');
+    svg.appendChild(vt);
+    const lt = svgEl('text', { x: x + barW / 2, y: H - padB + 18, class: 'cat-label', 'text-anchor': 'middle' });
+    lt.textContent = d.label;
+    svg.appendChild(lt);
+  });
+
+  container.appendChild(svg);
+}
+
+// ---- 02 Horizontal stacked bar chart: Payment method ----
+function renderStackedBars(containerId, data) {
+  const container = document.getElementById(containerId);
+  const W = container.clientWidth || 480, H = container.clientHeight || 260;
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none' });
+  const padL = 118, padR = 50, padT = 6, padB = 6;
+  const plotW = W - padL - padR;
+  const rowH = H / data.length;
+  const barH = rowH * 0.5;
+  const maxTotal = Math.max(...data.map(d => d.retained + d.churned));
+
+  data.forEach((d, i) => {
+    const y = padT + i * rowH + (rowH - barH) / 2;
+    const total = d.retained + d.churned;
+    const retW = plotW * (d.retained / maxTotal);
+    const chuW = plotW * (d.churned / maxTotal);
+    svg.appendChild(svgEl('rect', { x: padL, y, width: retW, height: barH, fill: '#1E3F55', rx: 4 }));
+    svg.appendChild(svgEl('rect', { x: padL + retW, y, width: chuW, height: barH, fill: '#F2585F', rx: 4 }));
+    const lbl = svgEl('text', { x: padL - 10, y: y + barH / 2 + 4, class: 'cat-label', 'text-anchor': 'end' });
+    lbl.textContent = d.label;
+    svg.appendChild(lbl);
+    const pct = svgEl('text', { x: padL + retW + chuW + 10, y: y + barH / 2 + 4, class: 'val-label', fill: '#F2585F' });
+    pct.textContent = Math.round(d.churned / total * 100) + '%';
+    svg.appendChild(pct);
+  });
+
+  container.appendChild(svg);
+}
+
+// ---- 03 Horizontal bar chart: Feature importance ----
+function renderHBars(containerId, data) {
+  const container = document.getElementById(containerId);
+  const W = container.clientWidth || 480, H = container.clientHeight || 320;
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none' });
+  const padL = 190, padR = 55, padT = 4, padB = 4;
+  const plotW = W - padL - padR;
+  const rowH = H / data.length;
+  const barH = rowH * 0.56;
+  const maxVal = Math.max(...data.map(d => d.value)) * 1.08;
+
+  data.forEach((d, i) => {
+    const y = padT + i * rowH + (rowH - barH) / 2;
+    const w = plotW * (d.value / maxVal);
+    const lbl = svgEl('text', { x: padL - 10, y: y + barH / 2 + 4, class: 'cat-label', 'text-anchor': 'end' });
+    lbl.textContent = d.label;
+    svg.appendChild(lbl);
+    svg.appendChild(svgEl('rect', { x: padL, y, width: w, height: barH, rx: 4, fill: '#48D6C8' }));
+    const vt = svgEl('text', { x: padL + w + 8, y: y + barH / 2 + 4, class: 'val-label', fill: '#48D6C8' });
+    vt.textContent = d.value.toFixed(0);
+    svg.appendChild(vt);
+  });
+
+  container.appendChild(svg);
+}
+
+renderVerticalBars('chartContract', [
+  { label: 'Month-to-month', value: 42.87, color: '#F2585F' },
+  { label: 'One year', value: 11.26, color: '#F0A860' },
+  { label: 'Two year', value: 2.84, color: '#69E4C6' },
+], { max: 50, suffix: '%' });
+
+renderStackedBars('chartPayment', [
+  { label: 'Bank transfer', retained: 1280, churned: 255 },
+  { label: 'Credit card', retained: 1287, churned: 229 },
+  { label: 'Electronic check', retained: 1286, churned: 1067 },
+  { label: 'Mailed check', retained: 1276, churned: 304 },
+]);
+
+renderHBars('chartFeatures', [
+  { label: 'is_month_to_month', value: 1069.2 },
+  { label: 'tenure', value: 764.0 },
+  { label: 'InternetService_Fiber optic', value: 564.2 },
+  { label: 'Contract_Two year', value: 543.8 },
+  { label: 'PaymentMethod_Electronic check', value: 524.9 },
+  { label: 'tenure_group_48-72', value: 391.5 },
+  { label: 'TechSupport_No internet', value: 278.0 },
+  { label: 'StreamingTV_No internet', value: 278.0 },
+  { label: 'StreamingMovies_No internet', value: 278.0 },
+]);
+</script>
+</body>
+</html>
